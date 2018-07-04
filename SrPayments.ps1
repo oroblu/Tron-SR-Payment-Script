@@ -5,7 +5,7 @@
 # This script generates 3 files
 # SRvotes.csv ->  excel file with summuary of votes and rewards
 # SRvotes.html ->  web page with summary of votes and reward  , can be published in a web server
-# Pay.sp1 -> powershell script to run payments
+# SRPay.sp1 -> powershell script to run payments
 #
 ###################################### Parameters #################################################
 
