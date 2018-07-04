@@ -9,8 +9,8 @@
 #
 ###################################### Parameters #################################################
 
-$SRaddress="TGj1Ej1qRzL9feLTLhjwgxXF4Ct6GTWg2U"								# super representative address
-$pkey="1111111111111111111111111111111111111111111111111111111111111111"								# super representative private key
+$SRaddress="TGj1Ej1qRzL9feLTLhjwgxXF4Ct6GTWg2U"				# super representative address
+$pkey="1111111111111111111111111111111111111111111111111111111111111111"# super representative private key
 $minPayOut=1								# if payout is less then this value (in TRX) no TRX will be paied
 $minVoteMinutes=60*24							# minimum duration time for a vote, to get voter rewarded
 $rewardPercentage=100							# perecentage dedicated of the total reward (Allowance)
@@ -35,11 +35,11 @@ $myTab = $JsonVotes | ConvertFrom-Json   | select -expand data content |
 Select-Object   @{Label = "Voter Address";Expression ={($_.VoterAddress)}},
     @{Label = "Votes";Expression ={($_.Votes)}}, 
     @{Label = "Vote Date UTC";Expression ={(($_.timestamp).replace('T'," ")).replace('Z','') }},
-    @{Label = "Time from Vote in Minutes";Expression ={ [math]::Round((NEW-TIMESPAN –end  ([System.DateTime]::UtcNow).ToString("yyyy-MM-dd HH:mm:ss") -start (($_.timestamp).replace('T'," ")).replace('Z','')).TotalMinutes) }},
+    @{Label = "Time from Vote in Minutes";Expression ={ [math]::Round((NEW-TIMESPAN â€“end  ([System.DateTime]::UtcNow).ToString("yyyy-MM-dd HH:mm:ss") -start (($_.timestamp).replace('T'," ")).replace('Z','')).TotalMinutes) }},
     @{Label = "Percentage % over total Votes";Expression ={ $_.votes/$myTotalVotes*100}},
     @{Label = "Reward (TRX)";Expression ={ [math]::Round($_.votes/$myTotalVotes*100*$SRreward/100/1000000,6)}},
     @{Label = "Real Reward (TRX)";Expression ={ $rew = $_.votes/$myTotalVotes*$SRreward/1000000 ; 
-                                                if ( $rew -ge $minPayOut -and (NEW-TIMESPAN –end  ([System.DateTime]::UtcNow).ToString("yyyy-MM-dd HH:mm:ss") -start (($_.timestamp).replace('T'," ")).replace('Z','')).totalminutes -gt $minVoteminutes ) 
+                                                if ( $rew -ge $minPayOut -and (NEW-TIMESPAN â€“end  ([System.DateTime]::UtcNow).ToString("yyyy-MM-dd HH:mm:ss") -start (($_.timestamp).replace('T'," ")).replace('Z','')).totalminutes -gt $minVoteminutes ) 
                                                     { [math]::Round($rew)} 
                                                 else 
                                                     {0} 
