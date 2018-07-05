@@ -12,7 +12,7 @@ $payURL="https://api.tronscan.org/api/transaction-builder/contract/transfer"# UR
 $SRaddress="TGj1Ej1qRzL9feLTLhjwgxXF4Ct6GTWg2U"								# super representative address
 $pkey="1111111111111111111111111111111111111111111111111111111111111111"								# super representative private key
 $minPayOut=1								# if payout is less then this value (in TRX) no TRX will be paied
-$minVoteMinutes=60*24							# minimum duration time for a vote, to get voter rewarded
+$minVoteMinutes=1							# minimum duration time for a vote, to get voter rewarded
 $rewardPercentage=100							# perecentage dedicated of the total reward (Allowance)
 
 ##################################### Get data via APIs ###########################################
@@ -174,7 +174,9 @@ $csvPayment= Import-Csv -Delimiter "`t" -Encoding Unicode -Path SRvotes.csv
 '# This script run the transaction for voters payments'                                  >> SRpay.ps1
 '# An Excel file "PayResult.csv" will be generated, with results for each transaction'   >> SRpay.ps1
 '######################################################################################' >> SRpay.ps1
-'cd  $(Split-Path $script:MyInvocation.MyCommand.Path)'                                  >> SRpay.ps1 
+'cd  $(Split-Path $script:MyInvocation.MyCommand.Path)'                                  >> SRpay.ps1
+'$myBalance=(Invoke-WebRequest "https://api.tronscan.org/api/account/' + $SRaddress + '"| ConvertFrom-Json ).balance' >> SRpay.ps1
+'if ( ' + $SRreward + ' + 10000000 -gt   $myBalance ) { "Total rewards + 10 TRX is $(10 + ' + $SRreward + '/1000000) but your balance is only $($mybalance/100000)" > PayResult.csv ; exit }' >> SRpay.ps1
 '"Voter Address `t Transaction `t Succes `t message"  > PayResult.csv'                   >> SRpay.ps1
 
 foreach( $payment in $csvPayment)
@@ -214,3 +216,4 @@ foreach( $payment in $csvPayment)
             out-file Srpay.ps1 -Append -InputObject ('"' + $payment.'voter address' + '`t $($payResult.transaction.hash) `t $($payResult.success)  `t $($payResult.result.message)" >> PayResult.csv')       
         }
     }
+
