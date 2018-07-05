@@ -8,7 +8,7 @@
 # Pay.sp1 -> powershell script to run payments
 #
 ###################################### Parameters #################################################
-
+$payURL="https://api.tronscan.org/api/transaction-builder/contract/transfer"# URL used to create transaction for voters payments
 $SRaddress="TGj1Ej1qRzL9feLTLhjwgxXF4Ct6GTWg2U"								# super representative address
 $pkey="1111111111111111111111111111111111111111111111111111111111111111"								# super representative private key
 $minPayOut=1								# if payout is less then this value (in TRX) no TRX will be paied
@@ -43,7 +43,7 @@ $JsonVotes = $JsonSplitted[0] + "[" + $JsonContentTrimmed.substring(0,$JsonConte
 ###################################################################################################
 
 
-$myTotal=($JsonVotes | ConvertFrom-Json).total
+$myVoters=($JsonVotes | ConvertFrom-Json).total
 $myTotalVotes=($JsonVotes | ConvertFrom-Json).totalvotes
 
 
@@ -159,7 +159,7 @@ table tr.alt td {
 $Body="<h3>Minimum payout is set to $minPayOut TRX </h3>
 <h3>Minimum time elapsed from vote to get rewarded is set to $minVoteMinutes minutes ( $($minVoteMinutes/60) hours ) </h3>
 <h3>Total reward amount from your Super Representative:  $($SRreward/1000000) TRX </h3>
-<h3>Total amount of votes your Super Representative:  $myTotalVotes </h3>"
+<h3>Total amount of voters:  $myVoters </h3>"
 
 
 
@@ -200,19 +200,17 @@ foreach( $payment in $csvPayment)
             $jsBody=$jsBody.Replace("reward",$(1000000*$payment.'Real Reward (TRX)'))
             $jsBody=$jsBody.Replace("pkey",$pkey)
             $jsBody= "'" + $jsBody + "'"
-            
-            out-file Srpay.ps1 -Append -InputObject '######################################################################################################################################################################################################' 
+           
+            out-file Srpay.ps1 -Append -InputObject '####################################################################' 
             out-file Srpay.ps1 -Append -InputObject '#'
             out-file Srpay.ps1 -Append -InputObject "#  Pay $($payment.'voter address')"                                                                                                                                                                        
             out-file Srpay.ps1 -Append -InputObject '#'
-            out-file Srpay.ps1 -Append -InputObject '######################################################################################################################################################################################################' 
+            out-file Srpay.ps1 -Append -InputObject '####################################################################' 
             out-file Srpay.ps1 -Append -InputObject "`$jsBody=  $jsBody" 
             out-file Srpay.ps1 -Append -InputObject "Start-Sleep -s 1"   
             out-file Srpay.ps1 -Append -InputObject "echo  `"......paying $($payment.'voter address') `""                                                                                                                                                                                                                                                                                                                                                         
-            out-file Srpay.ps1 -Append -InputObject '$payResult=Invoke-RestMethod -Method POST -uri "https://api.tronscan.org/api/transaction-builder/contract/transfer"   -Body $jsBody -ContentType "application/json" -Headers @{"accept"="application/json"}' 
+            out-file Srpay.ps1 -Append -InputObject ('$payResult=Invoke-RestMethod -Method POST -uri "' + $payURL + '" -Body $jsBody -ContentType "application/json" -Headers @{"accept"="application/json"}')
             out-file Srpay.ps1 -Append -InputObject 'echo "$($payResult.result.message)"'  
-            out-file Srpay.ps1 -Append -InputObject ('"adr `t $($payResult.transaction.hash) `t $($payResult.success)  `t $($payResult.result.message)" >> PayResult.csv').Replace("adr",$payment.'voter address') 
-            out-file Srpay.ps1 -Append -InputObject '######################################################################################################################################################################################################' 
-        
+            out-file Srpay.ps1 -Append -InputObject ('"' + $payment.'voter address' + '`t $($payResult.transaction.hash) `t $($payResult.success)  `t $($payResult.result.message)" >> PayResult.csv')       
         }
     }
