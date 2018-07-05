@@ -5,12 +5,12 @@
 # This script generates 3 files
 # SRvotes.csv ->  excel file with summuary of votes and rewards
 # SRvotes.html ->  web page with summary of votes and reward  , can be published in a web server
-# SRPay.sp1 -> powershell script to run payments
+# Pay.sp1 -> powershell script to run payments
 #
 ###################################### Parameters #################################################
 
-$SRaddress="TGj1Ej1qRzL9feLTLhjwgxXF4Ct6GTWg2U"				# super representative address
-$pkey="1111111111111111111111111111111111111111111111111111111111111111"# super representative private key
+$SRaddress="TGj1Ej1qRzL9feLTLhjwgxXF4Ct6GTWg2U"								# super representative address
+$pkey="1111111111111111111111111111111111111111111111111111111111111111"								# super representative private key
 $minPayOut=1								# if payout is less then this value (in TRX) no TRX will be paied
 $minVoteMinutes=60*24							# minimum duration time for a vote, to get voter rewarded
 $rewardPercentage=100							# perecentage dedicated of the total reward (Allowance)
@@ -23,7 +23,24 @@ cd  $(Split-Path $script:MyInvocation.MyCommand.Path)
 $JsonAllowance = Invoke-WebRequest "https://api.tronscan.org/api/account/$SRaddress"
 $SRreward= ($JsonAllowance | ConvertFrom-Json | select -expand representative).allowance
 $SRreward = $SRreward * $rewardPercentage / 100
-$JsonVotes = Invoke-WebRequest "https://api.tronscan.org/api/vote?sort=timestamp&candidate=$SRaddress" -TimeoutSec 10
+
+##################################### Retrive multiple pages from  json API ########################
+$i=0
+$JsonContent=$null
+do
+{
+    echo "... retrive https://api.tronscan.org/api/vote?limit=100&start=$($i)00&sort=timestamp&candidate=$SRaddress"
+$JsonData = Invoke-WebRequest "https://api.tronscan.org/api/vote?limit=100&start=$($i)00&sort=timestamp&candidate=$SRaddress" -TimeoutSec 10
+
+$JsonSplitted=($JsonData.Content).Split([char]0x005b,[char]0x005d)
+$JsonContent=$JsonContent + "," + $JsonSplitted[1]
+Start-Sleep -s 2
+$i++
+}
+while ( $JsonSplitted[1] -ne "")
+$JsonContentTrimmed= $JsonContent.Substring(1)
+$JsonVotes = $JsonSplitted[0] + "[" + $JsonContentTrimmed.substring(0,$JsonContentTrimmed.length - 1) + "]" + $JsonSplitted[2]
+###################################################################################################
 
 
 $myTotal=($JsonVotes | ConvertFrom-Json).total
@@ -141,7 +158,10 @@ table tr.alt td {
 
 $Body="<h3>Minimum payout is set to $minPayOut TRX </h3>
 <h3>Minimum time elapsed from vote to get rewarded is set to $minVoteMinutes minutes ( $($minVoteMinutes/60) hours ) </h3>
-<h3>Total reward amount from your Super Representative:  $($SRreward/1000000) TRX </h3>"
+<h3>Total reward amount from your Super Representative:  $($SRreward/1000000) TRX </h3>
+<h3>Total amount of votes your Super Representative:  $myTotalVotes </h3>"
+
+
 
 $myTab | ConvertTo-Html -Head $Css -Body $body  | out-file -FilePath SRVotes.html
 
